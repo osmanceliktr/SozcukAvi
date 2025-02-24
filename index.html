@@ -151,6 +151,20 @@
         #message.error {
             color: #e74c3c;
         }
+        .input-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .input-group input[type="text"] {
+        margin-right: 10px;
+        width: 130px;
+    }
+    
+    .input-group button {
+        white-space: nowrap;
+    }
     </style>
 </head>
 <body>
@@ -167,10 +181,12 @@
                 <span>İYİLİK</span><span>NİMET</span><span>MUHARREM</span><span>KARDEŞLİK</span><span>BAĞIŞ</span><span>ŞEFKAT</span>
             </div>
             <h3>Şifre:</h3>
-            <input type="text" id="input1" maxlength="3"> 
-            <input type="text" id="input2" maxlength="6"> 
-            <input type="text" id="input3" maxlength="10"> 
-            <button onclick="checkPassword()">Kontrol Et</button>
+            <div class="input-group">
+                <input type="text" id="input1" maxlength="3"> 
+                <input type="text" id="input2" maxlength="6"> 
+                <input type="text" id="input3" maxlength="10"> 
+                <button onclick="checkPassword()">Kontrol Et</button>
+            </div>
             <p id="message"></p>
         </div>
         <div class="right-side">
@@ -220,48 +236,97 @@
                 td.textContent = letter;
                 td.dataset.row = rowIndex;
                 td.dataset.col = colIndex;
-                td.addEventListener("mousedown", () => {
+                td.addEventListener("mousedown", (e) => {
+                    e.preventDefault();
                     selecting = true;
+                    clearSelection();
                     selectedCells = [td];
                     startRow = rowIndex;
                     startCol = colIndex;
                     td.classList.add("selected");
                 });
                 td.addEventListener("mouseover", () => {
-                    if (selecting) {
-                        let rowDiff = Math.abs(rowIndex - startRow);
-                        let colDiff = Math.abs(colIndex - startCol);
-                        if (rowDiff === colDiff || rowDiff === 0 || colDiff === 0) {
-                            selectedCells.push(td);
-                            td.classList.add("selected");
-                        }
-                    }
-                });
+    if (selecting) {
+        // Sadece düz çizgi boyunca seçime izin ver (yatay, dikey veya çapraz)
+        const currentRow = parseInt(td.dataset.row);
+        const currentCol = parseInt(td.dataset.col);
+        
+        // Hareket yönünü belirle
+        const rowDirection = currentRow - startRow !== 0 ? (currentRow - startRow) / Math.abs(currentRow - startRow) : 0;
+        const colDirection = currentCol - startCol !== 0 ? (currentCol - startCol) / Math.abs(currentCol - startCol) : 0;
+        
+        // Önceki seçimi kaldır
+        selectedCells.forEach(cell => {
+            if (cell !== selectedCells[0]) { // İlk hücreyi seçili tut
+                cell.classList.remove("selected");
+            }
+        });
+        
+        // Yeni seçimi sadece doğru yol üzerinde oluştur
+        selectedCells = [selectedCells[0]]; // İlk hücreyi koru
+        
+        let r = startRow;
+        let c = startCol;
+        
+        // İlk hücreden itibaren doğru yönde giderek yeni seçimi oluştur
+        while (r !== currentRow || c !== currentCol) {
+            r += rowDirection;
+            c += colDirection;
+            
+            if (r < 0 || r >= grid.length || c < 0 || c >= grid[0].length) {
+                break; // Izgara sınırlarının dışına çıkılırsa döngüyü sonlandır
+            }
+            
+            const cell = document.querySelector(`td[data-row="${r}"][data-col="${c}"]`);
+            if (cell) {
+                selectedCells.push(cell);
+                cell.classList.add("selected");
+            }
+        }
+    }
+});
                 tr.appendChild(td);
             });
             table.appendChild(tr);
         });
-
+// Seçimi temizleyen yardımcı fonksiyon
+function clearSelection() {
+    const allSelected = document.querySelectorAll(".selected:not(.found)");
+    allSelected.forEach(cell => cell.classList.remove("selected"));
+    selectedCells = [];
+}
         document.addEventListener("mouseup", () => {
-            selecting = false;
-            let selectedWord = selectedCells.map(td => td.textContent).join('');
-            let reversedWord = selectedWord.split('').reverse().join('');
-            
-            if (words.includes(selectedWord) || words.includes(reversedWord)) {
-                selectedCells.forEach(td => td.classList.add("found"));
-                let wordIndex = words.indexOf(selectedWord) !== -1 ? words.indexOf(selectedWord) : words.indexOf(reversedWord);
-                if (wordIndex !== -1) {
-                    wordElements[wordIndex].classList.add("strikethrough");
-                    wordElements[wordIndex].style.backgroundColor = "#2ecc71";  // Doğru kelime rengini yeşil yap
-                }
-            } else {
-                selectedCells.forEach(td => td.classList.remove("selected"));
-            }
+            if (!selecting) return;
+    selecting = false;
+    
+    let selectedWord = selectedCells.map(td => td.textContent).join('');
+    let reversedWord = selectedWord.split('').reverse().join('');
+    
+    if (words.includes(selectedWord) || words.includes(reversedWord)) {
+        selectedCells.forEach(td => {
+            td.classList.add("found");
+            td.classList.remove("selected");
         });
-
+        
+        let wordIndex = words.indexOf(selectedWord) !== -1 ? words.indexOf(selectedWord) : words.indexOf(reversedWord);
+        if (wordIndex !== -1) {
+            wordElements[wordIndex].style.textDecoration = "line-through";
+            wordElements[wordIndex].style.backgroundColor = "#2ecc71";
+        }
+    } else {
+        selectedCells.forEach(td => td.classList.remove("selected"));
+    }
+        });
+// Fare düğmesini bırakmadan sayfadan çıkarsa seçimi temizle
+document.addEventListener("mouseleave", () => {
+    if (selecting) {
+        selecting = false;
+        clearSelection();
+    }
+});
         function checkPassword() {
             const inputs = [document.getElementById("input1"), document.getElementById("input2"), document.getElementById("input3")];
-            const correctAnswer = ['SAD', 'RAMAZAN', 'İBADET'];
+            const correctAnswer = ['HER', 'İYİLİK', 'SADAKADIR'];
 
             let isCorrect = true;
             inputs.forEach((input, index) => {
