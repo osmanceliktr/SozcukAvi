@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sözcük Avı</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+            gap: 30px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .left-side {
+            width: 45%;
+        }
+
+        .right-side {
+            width: 50%;
+            height: 600px;
+            overflow: auto;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        #wordList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+
+        #wordList span {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #wordList span:hover {
+            background-color: #2980b9;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background-color: #fff;
+            font-size: 1.2rem;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        td.selected {
+            background-color: #f39c12;
+            transform: scale(1.1);
+        }
+
+        td.found {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        td.disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        input[type="text"] {
+            font-size: 1rem;
+            padding: 10px;
+            margin-right: 10px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            width: 150px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        #message {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        #message.success {
+            color: #2ecc71;
+        }
+
+        #message.error {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-side">
+            <h2>Sözcük Avı</h2>
+            <p>Aşağıda verilen kelimeleri bulmaca üzerinde yuvarlak içine alınız ve üzerini çiziniz. Geriye kalan harfleri sırasıyla aşağıda verilen şifre bölümüne yazınız. Kelimeler sağdan sola, soldan sağa, yukarıdan aşağıya, aşağıdan yukarıya ve çapraz olabilir.</p>
+            <div id="wordList">
+                <span>SADAKA</span><span>AZİM</span><span>İTİDAL</span><span>METANET</span><span>İBADET</span><span>ZEKAT</span>
+                <span>TESLİMİYET</span><span>İNFAK</span><span>SABIR</span><span>ORUÇ</span><span>MÜCADELE</span><span>RAHMET</span>
+                <span>İFTAR</span><span>TEVEKKÜL</span><span>EMANET</span><span>KARARLILIK</span><span>MERHAMET</span><span>HAYIR</span>
+                <span>HOŞGÖRÜ</span><span>CÖMERTLİK</span><span>SAHUR</span><span>İMTİHAN</span><span>SEVAP</span><span>MÜKAFAT</span>
+                <span>İKRAM</span><span>RAMAZAN</span><span>YARDIM</span><span>AŞURE</span><span>BEREKET</span><span>GAYRET</span>
+                <span>İYİLİK</span><span>NİMET</span><span>MUHARREM</span><span>KARDEŞLİK</span><span>BAĞIŞ</span><span>ŞEFKAT</span>
+            </div>
+            <h3>Şifre:</h3>
+            <input type="text" id="input1" maxlength="3"> 
+            <input type="text" id="input2" maxlength="6"> 
+            <input type="text" id="input3" maxlength="10"> 
+            <button onclick="checkPassword()">Kontrol Et</button>
+            <p id="message"></p>
+        </div>
+        <div class="right-side">
+            <table id="wordSearch"></table>
+        </div>
+    </div>
+
+    <script>
+        const words = ["SADAKA", "AZİM", "İTİDAL", "METANET", "İBADET", "ZEKAT", "TESLİMİYET", "İNFAK", "SABIR", "ORUÇ", "MÜCADELE", "RAHMET",
+            "İFTAR","TEVEKKÜL","EMANET","KARARLILIK","MERHAMET","HAYIR","HOŞGÖRÜ","CÖMERTLİK","SAHUR","İMTİHAN","SEVAP","MÜKAFAT","İKRAM","RAMAZAN",
+            "YARDIM","AŞURE","BEREKET","GAYRET","İYİLİK","NİMET","MUHARREM","KARDEŞLİK","BAĞIŞ","ŞEFKAT"
+        ];
+
+        const wordElements = document.querySelectorAll("#wordList span");
+
+        const grid = [
+            "TAFAKÜMGAYRET",
+            "METANETMPAVES",
+            "TCHMERIRBİRMN",
+            "EÖMYEDIEİITÜA",
+            "YMLERRRYBİECZ",
+            "İEHAREHAAKNAA",
+            "MRYOKRSASHADM",
+            "İTİEŞNARMAMEA",
+            "LLTYSGAHAEELR",
+            "SİKLİAÖHUTTEA",
+            "EKAÜLLDRİMFŞD",
+            "TRRKABİAÜTUİM",
+            "TADKDASKKRMİA",
+            "EHEEİĞİAEAZİK",
+            "DMŞVTITKHAANK",
+            "AELEİŞDARUIİA",
+            "BTİTÇUROKARMF",
+            "İRKŞEFKATEMEN",
+            "KILILRARAKZTİ"
+        ];
+
+        const table = document.getElementById("wordSearch");
+        let selecting = false;
+        let selectedCells = [];
+        let startRow, startCol;
+
+        grid.forEach((row, rowIndex) => {
+            let tr = document.createElement("tr");
+            row.split('').forEach((letter, colIndex) => {
+                let td = document.createElement("td");
+                td.textContent = letter;
+                td.dataset.row = rowIndex;
+                td.dataset.col = colIndex;
+                td.addEventListener("mousedown", () => {
+                    selecting = true;
+                    selectedCells = [td];
+                    startRow = rowIndex;
+                    startCol = colIndex;
+                    td.classList.add("selected");
+                });
+                td.addEventListener("mouseover", () => {
+                    if (selecting) {
+                        let rowDiff = Math.abs(rowIndex - startRow);
+                        let colDiff = Math.abs(colIndex - startCol);
+                        if (rowDiff === colDiff || rowDiff === 0 || colDiff === 0) {
+                            selectedCells.push(td);
+                            td.classList.add("selected");
+                        }
+                    }
+                });
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+
+        document.addEventListener("mouseup", () => {
+            selecting = false;
+            let selectedWord = selectedCells.map(td => td.textContent).join('');
+            let reversedWord = selectedWord.split('').reverse().join('');
+            
+            if (words.includes(selectedWord) || words.includes(reversedWord)) {
+                selectedCells.forEach(td => td.classList.add("found"));
+                let wordIndex = words.indexOf(selectedWord) !== -1 ? words.indexOf(selectedWord) : words.indexOf(reversedWord);
+                if (wordIndex !== -1) {
+                    wordElements[wordIndex].classList.add("strikethrough");
+                    wordElements[wordIndex].style.backgroundColor = "#2ecc71";  // Doğru kelime rengini yeşil yap
+                }
+            } else {
+                selectedCells.forEach(td => td.classList.remove("selected"));
+            }
+        });
+
+        function checkPassword() {
+            const inputs = [document.getElementById("input1"), document.getElementById("input2"), document.getElementById("input3")];
+            const correctAnswer = ['SAD', 'RAMAZAN', 'İBADET'];
+
+            let isCorrect = true;
+            inputs.forEach((input, index) => {
+                if (input.value.toUpperCase() !== correctAnswer[index]) {
+                    isCorrect = false;
+                }
+            });
+
+            const message = document.getElementById("message");
+            if (isCorrect) {
+                message.textContent = "Şifre doğru!";
+                message.className = "success";
+            } else {
+                message.textContent = "Şifre yanlış, tekrar deneyin.";
+                message.className = "error";
+            }
+        }
+    </script>
+</body>
+</html>
